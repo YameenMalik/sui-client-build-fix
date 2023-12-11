@@ -11,42 +11,52 @@ import {
 } from "@bluefin-exchange/bluefin-v2-client";
 const deployment = readFile("./deployment.json");
 
-const client = new SuiClient({ url: "https://fullnode.mainnet.sui.io:443" });
-
-const liquidator = getSignerFromSeed(
-  "royal reopen journey royal enlist vote core cluster shield slush hill sample",
-  "Secp256k1"
-);
-
-const onChain = new OnChainCalls(liquidator, deployment, client);
-
 const main = async () => {
-  const client = new BluefinClient(true, Networks.PRODUCTION_SUI, liquidator);
+  const suiClient = new SuiClient({
+    url: "https://fullnode.mainnet.sui.io:443",
+  });
 
-  await client.init();
+  const liquidatorsPhrase = [
+    "royal reopen journey royal enlist vote core cluster shield slush hill sample",
+    "royal reopen journey royal enlist vote core cluster shield slush hill sample",
+  ];
 
-  console.log("Account address:", client.getPublicAddress());
+  for (const phrase of liquidatorsPhrase) {
+    const liquidator = getSignerFromSeed(phrase, "Secp256k1");
 
-  for (const market of ["ETH-PERP", "BTC-PERP"]) {
-    try {
-      const { isPosPositive, qPos } = await onChain.getUserPosition(market);
-      const size = toBaseNumber(qPos, 3, 9);
-      console.log({ market, isPosPositive, size });
+    const onChain = new OnChainCalls(liquidator, deployment, suiClient);
 
-      if (size > 0) {
-        const signedOrder = await client.createSignedOrder({
-          symbol: market,
-          price: 0, // market order
-          quantity: size,
-          side: isPosPositive == true ? ORDER_SIDE.SELL : ORDER_SIDE.BUY,
-          orderType: ORDER_TYPE.MARKET,
-          leverage: 2,
-        });
+    const bluefinClient = new BluefinClient(
+      true,
+      Networks.PRODUCTION_SUI,
+      liquidator
+    );
 
-        console.dir(await client.placeSignedOrder(signedOrder), null);
+    await bluefinClient.init();
+
+    console.log("Account address:", bluefinClient.getPublicAddress());
+
+    for (const market of ["ETH-PERP", "BTC-PERP"]) {
+      try {
+        const { isPosPositive, qPos } = await onChain.getUserPosition(market);
+        const size = toBaseNumber(qPos, 3, 9);
+        console.log({ market, isPosPositive, size });
+
+        if (size > 0) {
+          const signedOrder = await bluefinClient.createSignedOrder({
+            symbol: market,
+            price: 0, // market order
+            quantity: size,
+            side: isPosPositive == true ? ORDER_SIDE.SELL : ORDER_SIDE.BUY,
+            orderType: ORDER_TYPE.MARKET,
+            leverage: 2,
+          });
+
+          console.dir(await bluefinClient.placeSignedOrder(signedOrder), null);
+        }
+      } catch (e) {
+        console.log({ market, isPosPositive: false, size: 0 });
       }
-    } catch (e) {
-      console.log({ market, isPosPositive: false, size: 0 });
     }
   }
 };
