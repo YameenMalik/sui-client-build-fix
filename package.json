@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node ./src/main.ts",
     "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@bluefin-exchange/bluefin-v2-client": "^5.2.5"
+    "@bluefin-exchange/bluefin-v2-client": "^5.2.6"
   }
 }
