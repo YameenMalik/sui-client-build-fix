@@ -17,7 +17,7 @@ const main = async () => {
   const signedOrder = await client.createSignedOrder({
     symbol: "BTC-PERP",
     price: 0, // market order
-    quantity: 0.02, // should be user position size
+    quantity: 0.439, // should be user position size
     side: ORDER_SIDE.SELL, // should be inverse of user's current position
     orderType: ORDER_TYPE.MARKET,
     leverage: 2,
